@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "cloudrun": {
+      "command": "npx",
+      "args": ["-y", "@google-cloud/cloud-run-mcp"]
+    },
+    "vertexai": {
+      "command": "npx",
+      "args": ["-y", "@google-cloud/vertexai-mcp"]
+    }
+  }
+}

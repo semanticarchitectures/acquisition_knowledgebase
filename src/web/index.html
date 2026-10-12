@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>USAF Acquisition Knowledgebase — Document Review Console</title>
+  <meta name="description" content="Intelligent multi-agent defense acquisition document auditing, echelon precedence graph modeling, and automated redline conflict resolution console.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+  <!-- Top Navigation & Masthead -->
+  <header class="app-header" id="app-header">
+    <div class="header-branding">
+      <div class="badge-emblem" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </div>
+      <div class="branding-text">
+        <h1 class="system-title">USAF Acquisition Knowledgebase</h1>
+        <p class="system-subtitle">Multi-Agent Document Review & Precedence Audit Console</p>
+      </div>
+    </div>
+
+    <div class="header-controls">
+      <div class="status-indicator" id="system-status-indicator" title="Connected to Vertex AI Agent Development Kit">
+        <span class="status-dot pulsing"></span>
+        <span class="status-label">Vertex AI ADK Online</span>
+      </div>
+
+      <div class="echelon-pill" id="current-echelon-pill">
+        <span class="pill-label">Context:</span>
+        <span class="pill-value">PEO C3BM ➔ Program Office</span>
+      </div>
+
+      <button class="btn btn-primary btn-run-audit" id="btn-run-audit" type="button">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+          <polygon points="5 3 19 12 5 21 5 3"></polygon>
+        </svg>
+        <span>Run Audit Simulation</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Navigation Tabs -->
+  <nav class="nav-tabs-container" aria-label="Main Navigation">
+    <div class="nav-tabs" role="tablist">
+      <button class="tab-button active" id="tab-overview" role="tab" aria-selected="true" aria-controls="panel-overview" data-target="overview">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Audit Dashboard
+      </button>
+      <button class="tab-button" id="tab-hierarchy" role="tab" aria-selected="false" aria-controls="panel-hierarchy" data-target="hierarchy">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        Echelon Hierarchy Graph
+      </button>
+      <button class="tab-button" id="tab-diff" role="tab" aria-selected="false" aria-controls="panel-diff" data-target="diff">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+        Redline & Conflict Diff
+      </button>
+      <button class="tab-button" id="tab-memorandum" role="tab" aria-selected="false" aria-controls="panel-memorandum" data-target="memorandum">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        Issue Memorandum (Doc E)
+      </button>
+      <button class="tab-button" id="tab-catalog" role="tab" aria-selected="false" aria-controls="panel-catalog" data-target="catalog">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+        Policy & Anchor Catalog
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <main class="app-main">
+    <!-- PANEL 1: AUDIT DASHBOARD OVERVIEW -->
+    <section class="tab-panel active" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview">
+      <div class="metrics-grid">
+        <!-- Compliance Score Card -->
+        <div class="metric-card card-compliance">
+          <div class="metric-header">
+            <span class="metric-label">Compliance Score</span>
+            <span class="badge badge-warning" id="compliance-status-badge">ACTION REQUIRED</span>
+          </div>
+          <div class="compliance-gauge-wrapper">
+            <div class="gauge-circle" id="gauge-circle">
+              <svg viewBox="0 0 120 120" class="gauge-svg">
+                <circle cx="60" cy="60" r="50" class="gauge-bg"></circle>
+                <circle cx="60" cy="60" r="50" class="gauge-progress" id="gauge-progress-circle" stroke-dasharray="314" stroke-dashoffset="100"></circle>
+              </svg>
+              <div class="gauge-text">
+                <span class="gauge-value" id="compliance-score-val">0.68</span>
+                <span class="gauge-max">/ 1.00</span>
+              </div>
+            </div>
+            <div class="gauge-legend">
+              <p class="gauge-desc">Target Requirement: <strong>Doc D (Target SRD)</strong> evaluated against <strong>Doc A (ACE Concept)</strong>.</p>
+              <span class="metric-trend negative">▼ 32% penalty from critical parameter mismatch</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metric Stat 1: Total Policies -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Authority Policies Scanned</span>
+            <span class="badge badge-neutral">SPINE</span>
+          </div>
+          <div class="metric-body">
+            <div class="metric-number">7</div>
+            <div class="metric-subtext">5 Public Anchors + 2 Test Documents</div>
+            <div class="metric-footer-tags">
+              <span class="tag">Federal</span>
+              <span class="tag">DoD</span>
+              <span class="tag">DAF</span>
+              <span class="tag">PAE</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metric Stat 2: Active Conflicts -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Conflicts Found</span>
+            <span class="badge badge-danger" id="conflicts-count-badge">1 CRITICAL</span>
+          </div>
+          <div class="metric-body">
+            <div class="metric-number text-danger" id="conflicts-count-val">1</div>
+            <div class="metric-subtext">Precedence hierarchy violation detected</div>
+            <div class="metric-footer-tags">
+              <span class="tag tag-danger">SATCOM Failover</span>
+              <span class="tag">Level 3 vs 6</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metric Stat 3: Missing Policies -->
+        <div class="metric-card">
+          <div class="metric-header">
+            <span class="metric-label">Missing Policies / Gaps</span>
+            <span class="badge badge-warning">ATTENTION</span>
+          </div>
+          <div class="metric-body">
+            <div class="metric-number text-warning" id="missing-policies-val">1</div>
+            <div class="metric-subtext">Referenced standard unindexed in knowledgebase</div>
+            <div class="metric-footer-tags">
+              <span class="tag tag-warning">MIL-STD-6016C</span>
+              <span class="tag">JIT Ingestion Needed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Audit Notification Banner -->
+      <div class="audit-banner alert-critical" id="audit-banner">
+        <div class="banner-icon">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+        </div>
+        <div class="banner-content">
+          <h2 class="banner-title">Critical Precedence Conflict Detected: Failover Latency Parameter</h2>
+          <p class="banner-description">
+            Lower-echelon draft requirement in <strong>Doc D: Tactical Data Link SRD (Program Office, Level 6)</strong> specifies a <strong>60-second</strong> failover timer. This violates higher-echelon authority <strong>Doc A: Updated ACE C2 Operational Concept (DAF, Level 3)</strong> which strictly mandates automated fallback within <strong>3 seconds</strong>.
+          </p>
+        </div>
+        <div class="banner-actions">
+          <button class="btn btn-secondary" id="btn-inspect-conflict" type="button">Inspect Redline Diff</button>
+          <button class="btn btn-success" id="btn-auto-resolve" type="button">Auto-Apply Resolution</button>
+        </div>
+      </div>
+
+      <!-- Conflicts Table Card -->
+      <div class="content-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">Precedence Audit Findings</h3>
+            <p class="card-subtitle">Automated comparison against Graph Echelon & Temporal Precedence Rules</p>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-ghost" id="btn-export-json" type="button">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Export audit-schema.json
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table" id="table-conflicts">
+            <thead>
+              <tr>
+                <th>Conflict ID</th>
+                <th>Severity</th>
+                <th>Higher Precedence Mandate</th>
+                <th>Target Draft Requirement</th>
+                <th>Description</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="conflicts-table-body">
+              <tr>
+                <td><code>CONF-2026-001</code></td>
+                <td><span class="badge badge-danger">CRITICAL</span></td>
+                <td>
+                  <strong>Doc A: ACE C2 Concept</strong><br>
+                  <small class="text-muted">Echelon: DAF (Level 3) • Sec 3</small><br>
+                  <span class="code-pill">Threshold: 3 sec max</span>
+                </td>
+                <td>
+                  <strong>Doc D: Target SRD</strong><br>
+                  <small class="text-muted">Echelon: Program Office (Level 6) • Sec 4.2</small><br>
+                  <span class="code-pill pill-danger">Timer: 60 sec</span>
+                </td>
+                <td>
+                  Operational failover timer exceeds authorized ACE latency threshold by 57 seconds.
+                </td>
+                <td>
+                  <button class="btn btn-xs btn-primary btn-resolve-row" data-conflict="CONF-2026-001" type="button">Review & Redline</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Missing Policies Card -->
+      <div class="content-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">Missing Policies & JIT Ingestion Queue</h3>
+            <p class="card-subtitle">Referenced standards not currently indexed in Vertex AI Vector Search</p>
+          </div>
+          <button class="btn btn-sm btn-secondary" id="btn-trigger-jit" type="button">Ingest Missing Policies</button>
+        </div>
+        <div class="missing-policies-list">
+          <div class="policy-item">
+            <div class="policy-icon">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+            </div>
+            <div class="policy-info">
+              <div class="policy-name">MIL-STD-6016C: Tactical Data Link (TDL) 16 Message Standard</div>
+              <div class="policy-meta">Referenced in Doc D Sec 4.1 • Echelon: Federal / Joint • Status: Pending Ingestion</div>
+            </div>
+            <span class="badge badge-warning">JIT QUEUED</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 2: ECHELON HIERARCHY GRAPH -->
+    <section class="tab-panel" id="panel-hierarchy" role="tabpanel" aria-labelledby="tab-hierarchy">
+      <div class="content-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">Echelon Authority & Precedence Graph</h3>
+            <p class="card-subtitle">Neo4j Cypher representation: Directional <code>[:AUTHORITY_OVER]</code> relationships</p>
+          </div>
+          <div class="card-badge-info">
+            <span class="code-pill">Neo4j Bolt: Connected</span>
+          </div>
+        </div>
+
+        <div class="graph-viewport" id="graph-viewport">
+          <div class="echelon-pipeline">
+            <!-- Level 1 -->
+            <div class="echelon-node" data-level="1">
+              <div class="node-badge">Level 1</div>
+              <div class="node-title">Federal</div>
+              <div class="node-desc">National Law, Executive Orders, NDS</div>
+              <div class="node-doc">NDS Summary (Unclassified)</div>
+            </div>
+
+            <div class="echelon-connector" aria-hidden="true">
+              <span class="arrow-line"></span>
+              <span class="arrow-label">[:AUTHORITY_OVER]</span>
+            </div>
+
+            <!-- Level 2 -->
+            <div class="echelon-node" data-level="2">
+              <div class="node-badge">Level 2</div>
+              <div class="node-title">DoD</div>
+              <div class="node-desc">Department of Defense Directives</div>
+              <div class="node-doc">DoDD 5000.01 (Defense Acq)</div>
+            </div>
+
+            <div class="echelon-connector" aria-hidden="true">
+              <span class="arrow-line"></span>
+              <span class="arrow-label">[:AUTHORITY_OVER]</span>
+            </div>
+
+            <!-- Level 3 -->
+            <div class="echelon-node active-higher" data-level="3">
+              <div class="node-badge">Level 3</div>
+              <div class="node-title">DAF</div>
+              <div class="node-desc">Department of the Air Force Instructions</div>
+              <div class="node-doc highlight-doc">Doc A: ACE C2 Concept (2026)</div>
+            </div>
+
+            <div class="echelon-connector" aria-hidden="true">
+              <span class="arrow-line"></span>
+              <span class="arrow-label">[:AUTHORITY_OVER]</span>
+            </div>
+
+            <!-- Level 4 -->
+            <div class="echelon-node" data-level="4">
+              <div class="node-badge">Level 4</div>
+              <div class="node-title">AFMC</div>
+              <div class="node-desc">Air Force Materiel Command Guidance</div>
+              <div class="node-doc">AFMC Acq Directives</div>
+            </div>
+
+            <div class="echelon-connector" aria-hidden="true">
+              <span class="arrow-line"></span>
+              <span class="arrow-label">[:AUTHORITY_OVER]</span>
+            </div>
+
+            <!-- Level 5 -->
+            <div class="echelon-node" data-level="5">
+              <div class="node-badge">Level 5</div>
+              <div class="node-title">PAE_C3BM</div>
+              <div class="node-desc">Program Executive Office C3BM</div>
+              <div class="node-doc">DAF C3BM Architecture Briefings</div>
+            </div>
+
+            <div class="echelon-connector" aria-hidden="true">
+              <span class="arrow-line"></span>
+              <span class="arrow-label">[:AUTHORITY_OVER]</span>
+            </div>
+
+            <!-- Level 6 -->
+            <div class="echelon-node active-target" data-level="6">
+              <div class="node-badge">Level 6</div>
+              <div class="node-title">Program_Office</div>
+              <div class="node-desc">System Requirements Documents (SRD)</div>
+              <div class="node-doc highlight-target">Doc D: Target SRD (Draft)</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="graph-legend">
+          <div class="legend-item"><span class="legend-color higher"></span> Higher Precedence Mandate (Doc A, Level 3)</div>
+          <div class="legend-item"><span class="legend-color target"></span> Target Under Review (Doc D, Level 6)</div>
+          <div class="legend-item"><span class="legend-color default"></span> Baseline Authority Store</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 3: REDLINE & CONFLICT DIFF -->
+    <section class="tab-panel" id="panel-diff" role="tabpanel" aria-labelledby="tab-diff">
+      <div class="content-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">Side-by-Side Echelon Comparison</h3>
+            <p class="card-subtitle">Visual conflict analysis between governing DAF concept and target Program Office SRD</p>
+          </div>
+          <div class="diff-view-controls">
+            <button class="btn btn-sm btn-primary" id="btn-apply-redline-diff" type="button">Apply Proposed Redline</button>
+            <button class="btn btn-sm btn-ghost" id="btn-reset-diff" type="button">Reset to Original</button>
+          </div>
+        </div>
+
+        <div class="side-by-side-grid">
+          <!-- Higher Precedence Side -->
+          <div class="diff-pane diff-pane-higher">
+            <div class="pane-header">
+              <div class="pane-title">
+                <span class="badge badge-success">HIGHER PRECEDENCE</span>
+                <h4>Doc A: Updated ACE C2 Operational Concept (2026)</h4>
+              </div>
+              <div class="pane-meta">Echelon: <strong>DAF (Level 3)</strong> • Section 3</div>
+            </div>
+            <div class="pane-content">
+              <p class="text-body">
+                Command and Control nodes operating at austere, non-USAF facilities must sustain operations during satellite link dropouts.
+              </p>
+              <div class="diff-highlight-box mandate-box">
+                <span class="highlight-tag">MANDATORY THRESHOLD</span>
+                <p>
+                  "All tactical communications systems SHALL provide automated fallback to local mesh networking within <mark class="mark-mandate">3 seconds</mark> of SATCOM degradation."
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Target Document Side -->
+          <div class="diff-pane diff-pane-target">
+            <div class="pane-header">
+              <div class="pane-title">
+                <span class="badge badge-danger" id="target-doc-badge">NON-COMPLIANT DRAFT</span>
+                <h4>Doc D: Tactical Data Link SRD (Draft)</h4>
+              </div>
+              <div class="pane-meta">Echelon: <strong>Program Office (Level 6)</strong> • Section 4.2</div>
+            </div>
+            <div class="pane-content" id="target-doc-content">
+              <p class="text-body">
+                Operational failover and re-acquisition specifications:
+              </p>
+              <div class="diff-highlight-box conflict-box" id="target-highlight-box">
+                <span class="highlight-tag tag-conflict" id="target-highlight-tag">CONFLICTING VALUE</span>
+                <p id="target-requirement-text">
+                  "In the event of SATCOM signal attenuation or jamming, the system shall maintain a re-acquisition timer of <mark class="mark-conflict" id="target-timer-mark">60 seconds</mark> before switching operational modes to local tactical data links."
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Proposed Redline Code Block -->
+        <div class="redline-diff-container">
+          <div class="diff-header-bar">
+            <span class="diff-bar-title">Generated Redline Diff (Unified Git Format)</span>
+            <span class="badge badge-neutral">EditorAgent v1.0</span>
+          </div>
+          <pre class="diff-code-block" id="diff-code-display"><code>--- a/Doc_D_Target_SRD.md (Section 4.2: Link Failover Parameters)
++++ b/Doc_D_Target_SRD.md (Section 4.2: Link Failover Parameters)
+@@ -1,5 +1,5 @@
+- In the event of SATCOM signal attenuation or jamming, the system shall maintain a re-acquisition timer of 60 seconds before switching operational modes to local tactical data links.
++ In the event of SATCOM signal attenuation or jamming, the system shall provide automated fallback to local mesh networking within 3 seconds of SATCOM degradation in compliance with DAF ACE C2 Operational Concept (2026).</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 4: ISSUE MEMORANDUM (DOC E) -->
+    <section class="tab-panel" id="panel-memorandum" role="tabpanel" aria-labelledby="tab-memorandum">
+      <div class="content-card memo-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">Issue Memorandum (Doc E)</h3>
+            <p class="card-subtitle">Official Precedence Review & Redline Recommendation</p>
+          </div>
+          <div class="memo-actions">
+            <button class="btn btn-secondary btn-sm" id="btn-copy-memo" type="button">Copy to Clipboard</button>
+            <button class="btn btn-primary btn-sm" id="btn-download-memo" type="button">Download Memorandum</button>
+          </div>
+        </div>
+
+        <div class="memo-paper" id="memo-paper-content">
+          <div class="memo-header-block">
+            <div class="memo-header-line"><strong>MEMORANDUM FOR:</strong> Program Executive Officer, PEO C3BM</div>
+            <div class="memo-header-line"><strong>FROM:</strong> Acquisition Multi-Agent Audit System (AuditorAgent / Vertex AI ADK)</div>
+            <div class="memo-header-line"><strong>SUBJECT:</strong> Precedence Conflict Audit & Redline Recommendation — Doc D (Target SRD)</div>
+            <div class="memo-header-line"><strong>DATE:</strong> October 11, 2026</div>
+          </div>
+
+          <hr class="memo-divider">
+
+          <div class="memo-section">
+            <h4 class="memo-heading">1. PURPOSE</h4>
+            <p>
+              To notify program leadership of a critical architectural conflict identified during the automated precedence audit of the draft <em>Tactical Data Link System Requirements Document (Doc D)</em> against higher-echelon operational requirements established in <em>AFDP 1-21 Agile Combat Employment</em> and <em>Updated ACE C2 Operational Concept (Doc A)</em>.
+            </p>
+          </div>
+
+          <div class="memo-section">
+            <h4 class="memo-heading">2. ECHELON PRECEDENCE ANALYSIS</h4>
+            <p>
+              Under the established acquisition authority hierarchy (<code>Federal ➔ DoD ➔ DAF ➔ AFMC ➔ PAE_C3BM ➔ Program_Office</code>), mandates issued by the Department of the Air Force (Level 3) strictly supersede requirements generated at the Program Office level (Level 6).
+            </p>
+            <ul>
+              <li><strong>Governing Mandate:</strong> Doc A (DAF Level 3, Sec 3) enforces an automated mesh fallback within <strong>3 seconds</strong> to maintain survivability during hostile jamming.</li>
+              <li><strong>Draft Document:</strong> Doc D (Program Office Level 6, Sec 4.2) specifies a <strong>60-second</strong> delay prior to failover.</li>
+              <li><strong>Delta:</strong> The draft SRD introduces a 57-second vulnerability window directly contradicting ACE operational doctrine.</li>
+            </ul>
+          </div>
+
+          <div class="memo-section">
+            <h4 class="memo-heading">3. COMPLIANCE IMPACT</h4>
+            <p>
+              Current Compliance Score: <strong id="memo-compliance-score">0.68 / 1.00</strong> (CRITICAL severity conflict). Non-conformance prevents Milestone B entry until the requirement parameter is aligned.
+            </p>
+          </div>
+
+          <div class="memo-section">
+            <h4 class="memo-heading">4. RECOMMENDATION & REDLINE</h4>
+            <p>
+              Approve the EditorAgent redline modifying Section 4.2 of Doc D to mandate local mesh failover within &le; 3 seconds of SATCOM link degradation.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 5: POLICY CATALOG -->
+    <section class="tab-panel" id="panel-catalog" role="tabpanel" aria-labelledby="tab-catalog">
+      <div class="content-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">Policy & Anchor Document Catalog</h3>
+            <p class="card-subtitle">Knowledge store inventory indexed in Vertex AI Vector Search and Neo4j</p>
+          </div>
+        </div>
+
+        <div class="catalog-grid">
+          <!-- Doc 1 -->
+          <div class="catalog-card">
+            <div class="catalog-header">
+              <span class="badge badge-neutral">Federal (Level 1)</span>
+              <span class="status-dot-sm online"></span>
+            </div>
+            <h4 class="catalog-title">National Defense Strategy (NDS)</h4>
+            <p class="catalog-desc">Unclassified Summary of strategic defense priorities and joint force capabilities.</p>
+            <div class="catalog-footer">
+              <span class="catalog-tag">DocAI Parsed</span>
+              <span class="catalog-tag">Vector Indexed</span>
+            </div>
+          </div>
+
+          <!-- Doc 2 -->
+          <div class="catalog-card">
+            <div class="catalog-header">
+              <span class="badge badge-neutral">DoD (Level 2)</span>
+              <span class="status-dot-sm online"></span>
+            </div>
+            <h4 class="catalog-title">DoD Directive 5000.01</h4>
+            <p class="catalog-desc">Defense Acquisition System governing policies, milestone decisions, and statutory compliance.</p>
+            <div class="catalog-footer">
+              <span class="catalog-tag">DocAI Parsed</span>
+              <span class="catalog-tag">Vector Indexed</span>
+            </div>
+          </div>
+
+          <!-- Doc 3 -->
+          <div class="catalog-card">
+            <div class="catalog-header">
+              <span class="badge badge-neutral">DAF (Level 3)</span>
+              <span class="status-dot-sm online"></span>
+            </div>
+            <h4 class="catalog-title">AFDP 1-21 Agile Combat Employment</h4>
+            <p class="catalog-desc">Air Force Doctrine Publication defining operational concepts for distributed and austere operations.</p>
+            <div class="catalog-footer">
+              <span class="catalog-tag">DocAI Parsed</span>
+              <span class="catalog-tag">Vector Indexed</span>
+            </div>
+          </div>
+
+          <!-- Doc 4 -->
+          <div class="catalog-card">
+            <div class="catalog-header">
+              <span class="badge badge-neutral">PAE_C3BM (Level 5)</span>
+              <span class="status-dot-sm online"></span>
+            </div>
+            <h4 class="catalog-title">DAF C3BM Modernization Briefings</h4>
+            <p class="catalog-desc">Architecture and interoperability frameworks for command, control, and battle management systems.</p>
+            <div class="catalog-footer">
+              <span class="catalog-tag">DocAI Parsed</span>
+              <span class="catalog-tag">Vector Indexed</span>
+            </div>
+          </div>
+
+          <!-- Doc 5 -->
+          <div class="catalog-card">
+            <div class="catalog-header">
+              <span class="badge badge-warning">Federal / Joint</span>
+              <span class="status-dot-sm pending"></span>
+            </div>
+            <h4 class="catalog-title">MIL-STD-6016 Tactical Data Link</h4>
+            <p class="catalog-desc">Standard interoperability protocols for tactical data networks. Referenced in draft requirements.</p>
+            <div class="catalog-footer">
+              <span class="catalog-tag tag-warning">JIT Ingestion Needed</span>
+            </div>
+          </div>
+
+          <!-- Doc 6 -->
+          <div class="catalog-card active-higher-card">
+            <div class="catalog-header">
+              <span class="badge badge-success">DAF (Level 3)</span>
+              <span class="status-dot-sm online"></span>
+            </div>
+            <h4 class="catalog-title">Doc A: Updated ACE C2 Operational Concept</h4>
+            <p class="catalog-desc">2026 update governing communications resilience & austere mesh networking (3-second failover).</p>
+            <div class="catalog-footer">
+              <span class="catalog-tag">Active Audit Benchmark</span>
+            </div>
+          </div>
+
+          <!-- Doc 7 -->
+          <div class="catalog-card active-target-card">
+            <div class="catalog-header">
+              <span class="badge badge-danger">Program Office (Level 6)</span>
+              <span class="status-dot-sm alert"></span>
+            </div>
+            <h4 class="catalog-title">Doc D: Tactical Data Link SRD (Draft)</h4>
+            <p class="catalog-desc">Target candidate document under review with 60-second link timer discrepancy in Section 4.2.</p>
+            <div class="catalog-footer">
+              <span class="catalog-tag tag-danger">Target Review Candidate</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-left">
+      <span>USAF Acquisition Knowledgebase PoC</span> •
+      <span>Built on Google Antigravity &amp; Vertex AI</span>
+    </div>
+    <div class="footer-right">
+      <span>Precedence Engine: Level 1–6 Graph Active</span> •
+      <span id="footer-last-audit">Last Audit: Live Demo State</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
