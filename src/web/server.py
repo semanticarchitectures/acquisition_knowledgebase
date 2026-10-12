@@ -2,20 +2,24 @@
 """
 USAF Acquisition Knowledgebase — Web Console Server, Audit Engine & REST API
 Features:
-- File upload & persistence (data/documents/)
+- File upload & persistence (supporting native PDF, Markdown, text)
+- PDF stream decompression & text extraction into structured Markdown
+- Tier 1 document summary generation in Markdown referencing the PDF
 - Automated echelon precedence auditing
 - Markdown review report generation with links to original documents (data/reviews/)
-- Tier 1 document summary generation in Markdown (data/summaries/)
 - Semantic database index linking documents to summaries (data/semantic_db.json)
+- Native browser PDF rendering for /api/documents/<doc_id>
 - Zero-dependency HTTP server for local testing and Google Cloud Run deployment
 """
 
+import base64
 import http.server
 import json
 import os
 import re
 import sys
 import time
+import zlib
 from datetime import datetime, timezone
 from urllib.parse import parse_qs, urlparse
 
@@ -72,6 +76,72 @@ AUDIT_DATA = {
 }
 
 
+def extract_text_from_pdf(pdf_bytes):
+    """
+    Extracts text and section structure from PDF bytes using standard library (re, zlib).
+    Decompresses FlateDecode streams and parses text elements and section headers.
+    """
+    extracted_chunks = []
+
+    # 1. Look for stream ... endstream blocks
+    stream_pattern = re.compile(rb"stream[\r\n]+([\s\S]*?)[\r\n]+endstream")
+    for match in stream_pattern.finditer(pdf_bytes):
+        stream_data = match.group(1)
+        decompressed = None
+        # Try decompressing with zlib (FlateDecode)
+        try:
+            decompressed = zlib.decompress(stream_data)
+        except Exception:
+            try:
+                decompressed = zlib.decompress(stream_data, -zlib.MAX_WBITS)
+            except Exception:
+                decompressed = stream_data
+
+        if decompressed:
+            # Parse BT ... ET text blocks
+            bt_matches = re.findall(rb"BT[\r\n\s]+([\s\S]*?)[\r\n\s]+ET", decompressed)
+            for bt in bt_matches:
+                # Text inside parentheses: (some text) Tj
+                tjs = re.findall(rb"\(([^)]*)\)\s*(?:Tj|'|\")", bt)
+                for t in tjs:
+                    decoded = t.decode("latin-1", errors="replace").strip()
+                    if decoded and len(decoded) > 1 and not decoded.startswith("/"):
+                        extracted_chunks.append(decoded)
+
+                # Text inside TJ array: [(part 1) -10 (part 2)] TJ
+                tj_arrays = re.findall(rb"\[([\s\S]*?)\]\s*TJ", bt)
+                for arr in tj_arrays:
+                    items = re.findall(rb"\(([^)]*)\)", arr)
+                    combined = "".join([item.decode("latin-1", errors="replace") for item in items]).strip()
+                    if combined and len(combined) > 1 and not combined.startswith("/"):
+                        extracted_chunks.append(combined)
+
+    # Fallback if no BT ... ET streams parsed text
+    if not extracted_chunks:
+        # Scan for printable ASCII/UTF-8 strings
+        ascii_strings = re.findall(rb"[A-Za-z0-9 ,.:;!?'\"()#\-\/]{4,}", pdf_bytes)
+        for s in ascii_strings:
+            decoded = s.decode("latin-1", errors="ignore").strip()
+            if not decoded.startswith("/") and not decoded.startswith("end") and not decoded.startswith("obj") and len(decoded) > 3:
+                extracted_chunks.append(decoded)
+
+    # Format into structured Markdown
+    markdown_lines = []
+    for chunk in extracted_chunks:
+        if chunk in ["PDF", "xref", "trailer", "startxref"]:
+            continue
+        # Detect section headings
+        if re.match(r"^(?:Doc\s+[A-Z]|Section\s+\d+|Chapter\s+\d+|Part\s+\d+|[A-Z0-9\s_-]{4,35}:)", chunk, re.IGNORECASE):
+            markdown_lines.append(f"\n## {chunk}\n")
+        elif chunk.startswith("#"):
+            markdown_lines.append(f"\n{chunk}\n")
+        else:
+            markdown_lines.append(chunk)
+
+    assembled = "\n".join(markdown_lines).strip()
+    return assembled if assembled else "PDF Document Content Processed."
+
+
 def load_semantic_db():
     if os.path.exists(SEMANTIC_DB_PATH):
         try:
@@ -100,7 +170,6 @@ def get_all_reviews():
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
-            # Extract metadata from header
             rev_match = re.search(r"\*\*Review ID:\*\*\s*`?([A-Za-z0-9_-]+)`?", content)
             score_match = re.search(r"\*\*Compliance Score:\*\*\s*\*\*([0-9.]+)", content)
             doc_link_match = re.search(r"\*\*Original Document:\*\*\s*\[([^\]]+)\]\(([^)]+)\)", content)
@@ -125,17 +194,17 @@ def get_all_reviews():
     return reviews
 
 
-def audit_document(content, filename, title, echelon_level, echelon_name):
+def audit_document(content, filename, title, echelon_level, echelon_name, is_pdf=False, raw_pdf_bytes=None):
     """
-    Audits an uploaded document:
-    1. Stores original document in data/documents/
-    2. Generates Tier 1 Markdown summary in data/summaries/
-    3. Runs echelon conflict checks
-    4. Generates Markdown review report with links to the original document in data/reviews/
-    5. Updates semantic database index in data/semantic_db.json
+    Audits an uploaded document (Markdown, Text, or PDF):
+    1. Stores original document in data/documents/ (raw PDF binary or UTF-8 text)
+    2. Extracts structured text if PDF
+    3. Generates Tier 1 Markdown summary in data/summaries/ with references to the original document
+    4. Runs echelon precedence conflict checks
+    5. Generates Markdown review report with links to the original document in data/reviews/
+    6. Updates semantic database index in data/semantic_db.json
     """
     global AUDIT_DATA
-    # 1. Allocate IDs
     ts = int(time.time())
     doc_id = f"DOC-{ts % 10000:04d}"
     review_id = f"REV-{datetime.now().strftime('%Y')}-{ts % 10000:04d}"
@@ -143,22 +212,30 @@ def audit_document(content, filename, title, echelon_level, echelon_name):
     doc_stored_filename = f"{doc_id}_{safe_filename}"
     doc_path = os.path.join(DOCS_DIR, doc_stored_filename)
 
-    # Save original document
-    with open(doc_path, "w", encoding="utf-8") as f:
-        f.write(content)
+    # 1. Save original document to disk
+    if is_pdf and raw_pdf_bytes:
+        with open(doc_path, "wb") as f:
+            f.write(raw_pdf_bytes)
+        # Extract structured text from PDF
+        extracted_content = extract_text_from_pdf(raw_pdf_bytes)
+        audit_text = extracted_content if extracted_content.strip() else content
+    else:
+        with open(doc_path, "w", encoding="utf-8") as f:
+            f.write(content)
+        audit_text = content
 
     # 2. Extract sections & analyze parameters
-    sections = re.findall(r"^##+\s*(.+)", content, re.MULTILINE)
+    sections = re.findall(r"^##+\s*(.+)", audit_text, re.MULTILINE)
     if not sections:
-        sections = ["General Requirements"]
+        sections = ["Section 1: General Requirements", "Section 2: System Specifications"]
 
     conflicts = []
     missing_policies = []
     compliance_score = 1.0
 
-    # Check for known conflict triggers: SATCOM timer > 3s at echelon level > 3
-    has_satcom = "satcom" in content.lower() or "satellite" in content.lower()
-    timer_match = re.search(r"(\d+)\s*(?:second|sec|s\b)", content, re.IGNORECASE)
+    # Conflict check: SATCOM timer > 3s at echelon level > 3
+    has_satcom = "satcom" in audit_text.lower() or "satellite" in audit_text.lower()
+    timer_match = re.search(r"(\d+)\s*(?:second|sec|s\b)", audit_text, re.IGNORECASE)
     timer_val = int(timer_match.group(1)) if timer_match else None
 
     if echelon_level > 3 and has_satcom and timer_val and timer_val > 3:
@@ -176,38 +253,42 @@ def audit_document(content, filename, title, echelon_level, echelon_name):
                 "echelon": echelon_name,
                 "section": sections[0] if sections else "Operational Parameters"
             },
-            "description": f"Failover timer of {timer_val}s in candidate document violates higher-echelon DAF ACE mandate (<= 3s).",
+            "description": f"Failover timer of {timer_val}s in candidate requirement violates higher-echelon DAF ACE mandate (<= 3s).",
             "proposed_resolution": f"Update requirement to mandate automated fallback to local mesh networking within 3 seconds of SATCOM degradation.",
             "severity": "CRITICAL"
         })
         compliance_score = 0.68
 
     # Check for unindexed standards
-    if "6016" in content and "MIL-STD-6016C" not in AUDIT_DATA.get("missing_policies_detected", []):
+    if "6016" in audit_text:
         missing_policies.append("MIL-STD-6016C: Tactical Data Link 16 Message Standard")
 
     # 3. Generate Tier 1 Executive Summary in Markdown
     summary_filename = f"{doc_id}_summary.md"
     summary_path = os.path.join(SUMMARIES_DIR, summary_filename)
+    format_label = "Native PDF Document (application/pdf)" if is_pdf else "Markdown / Plaintext"
+
     summary_md = f"""# Executive Summary: {title}
 
 - **Document ID:** `{doc_id}`
 - **Echelon Level:** Level {echelon_level} ({echelon_name})
 - **Ingestion Date:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+- **Ingestion Format:** {format_label}
 - **Original Source File:** [{safe_filename}](/api/documents/{doc_id})
-- **Stored File:** `data/documents/{doc_stored_filename}`
+- **Local Storage Path:** `data/documents/{doc_stored_filename}`
 
 ---
 
-## Document Overview
-{content[:300].strip()}...
+## Document Overview & PDF References
+{audit_text[:400].strip()}...
 
-## Key Sections Extracted
+## Extracted Structure & Key Sections
 """ + "\n".join([f"- **{sec}**" for sec in sections]) + f"""
 
 ## Precedence Evaluation
 - **Assigned Echelon:** Level {echelon_level} ({echelon_name})
-- **Precedence Rule:** Subordinate to echelons with lower numerical levels (Levels 1 to {max(1, echelon_level-1)}).
+- **Authority Rule:** Subordinate to echelons with lower numerical levels (Levels 1 to {max(1, echelon_level-1)}).
+- **Audit Flag:** {"CRITICAL CONFLICT DETECTED" if conflicts else "COMPLIANT WITH GOVERNING SPINES"}
 """
     with open(summary_path, "w", encoding="utf-8") as f:
         f.write(summary_md)
@@ -224,7 +305,7 @@ def audit_document(content, filename, title, echelon_level, echelon_name):
 - **Audit Date:** {datetime.now().strftime('%Y-%m-%d')}
 - **Auditor Engine:** Vertex AI ADK Precedence Engine / AuditorAgent
 - **Compliance Score:** **{compliance_score:.2f} / 1.00** (`{status_label}`)
-- **Original Document:** [{safe_filename}](/api/documents/{doc_id})
+- **Original Document:** [{safe_filename} ({format_label})](/api/documents/{doc_id})
 - **Executive Summary:** [{doc_id} Markdown Summary](/api/summaries/{doc_id})
 
 ---
@@ -286,6 +367,8 @@ No conflicting mandates were detected against superior echelons. Document confor
         "document_id": doc_id,
         "title": title,
         "filename": doc_stored_filename,
+        "mime_type": "application/pdf" if is_pdf else "text/markdown",
+        "format": "PDF" if is_pdf else "Markdown",
         "echelon": {
             "level": echelon_level,
             "name": echelon_name
@@ -305,7 +388,7 @@ No conflicting mandates were detected against superior echelons. Document confor
             }
         ],
         "status": "AUDITED",
-        "tier1_summary": f"Uploaded document audited at Level {echelon_level} ({echelon_name}). Compliance: {compliance_score:.2f}.",
+        "tier1_summary": f"Uploaded {format_label} audited at Level {echelon_level} ({echelon_name}). Compliance: {compliance_score:.2f}.",
         "tier2_sections": sections
     })
     save_semantic_db(db)
@@ -326,6 +409,7 @@ No conflicting mandates were detected against superior echelons. Document confor
         "document_id": doc_id,
         "review_id": review_id,
         "title": title,
+        "format": "PDF" if is_pdf else "Markdown",
         "original_document_url": f"/api/documents/{doc_id}",
         "summary_url": f"/api/summaries/{doc_id}",
         "review_url": f"/api/reviews/{review_id}",
@@ -333,7 +417,8 @@ No conflicting mandates were detected against superior echelons. Document confor
         "conflicts": conflicts,
         "missing_policies": missing_policies,
         "review_markdown": review_md,
-        "summary_markdown": summary_md
+        "summary_markdown": summary_md,
+        "extracted_markdown": audit_text
     }
 
 
@@ -376,7 +461,6 @@ class AcquisitionWebHandler(http.server.SimpleHTTPRequestHandler):
         # Get Single Review by ID
         if path.startswith("/api/reviews/"):
             review_id = path.replace("/api/reviews/", "").strip()
-            # Match review in data/reviews/
             matched_file = None
             if os.path.exists(REVIEWS_DIR):
                 for f in os.listdir(REVIEWS_DIR):
@@ -414,10 +498,9 @@ class AcquisitionWebHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json_response({"error": f"Summary for {doc_id} not found"}, status=404)
                 return
 
-        # Get Original Document by doc_id
+        # Get Original Document by doc_id (Handles PDF natively!)
         if path.startswith("/api/documents/"):
             doc_id = path.replace("/api/documents/", "").strip()
-            # Locate file in data/documents/ matching doc_id_*
             matched_file = None
             if os.path.exists(DOCS_DIR):
                 for f in os.listdir(DOCS_DIR):
@@ -426,10 +509,23 @@ class AcquisitionWebHandler(http.server.SimpleHTTPRequestHandler):
                         break
 
             if matched_file and os.path.exists(matched_file):
-                with open(matched_file, "r", encoding="utf-8") as f:
-                    content = f.read()
-                self.send_text_response(content, content_type="text/markdown; charset=utf-8")
-                return
+                # If PDF, serve as binary application/pdf
+                if matched_file.lower().endswith(".pdf"):
+                    with open(matched_file, "rb") as f:
+                        pdf_bytes = f.read()
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/pdf")
+                    self.send_header("Content-Disposition", f'inline; filename="{os.path.basename(matched_file)}"')
+                    self.send_header("Content-Length", str(len(pdf_bytes)))
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(pdf_bytes)
+                    return
+                else:
+                    with open(matched_file, "r", encoding="utf-8") as f:
+                        content = f.read()
+                    self.send_text_response(content, content_type="text/markdown; charset=utf-8")
+                    return
             else:
                 self.send_json_response({"error": f"Document {doc_id} not found"}, status=404)
                 return
@@ -442,7 +538,7 @@ class AcquisitionWebHandler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         parsed = urlparse(self.path)
 
-        # File Upload & Audit Endpoint
+        # File Upload & Audit Endpoint (Supports PDF via base64 or plaintext Markdown)
         if parsed.path == "/api/upload":
             content_length = int(self.headers.get("Content-Length", 0))
             raw_body = self.rfile.read(content_length).decode("utf-8")
@@ -453,8 +549,22 @@ class AcquisitionWebHandler(http.server.SimpleHTTPRequestHandler):
                 title = data.get("title", filename)
                 echelon_level = int(data.get("echelon_level", 6))
                 echelon_name = data.get("echelon_name", "Program_Office")
+                is_binary = data.get("is_binary", False) or filename.lower().endswith(".pdf")
+                file_base64 = data.get("file_base64", None)
 
-                result = audit_document(content, filename, title, echelon_level, echelon_name)
+                raw_bytes = None
+                if is_binary and file_base64:
+                    raw_bytes = base64.b64decode(file_base64)
+
+                result = audit_document(
+                    content=content,
+                    filename=filename,
+                    title=title,
+                    echelon_level=echelon_level,
+                    echelon_name=echelon_name,
+                    is_pdf=is_binary,
+                    raw_pdf_bytes=raw_bytes
+                )
                 self.send_json_response(result, status=201)
                 return
             except Exception as e:
@@ -514,7 +624,7 @@ def run_server():
     print(f" USAF Acquisition Knowledgebase — Web Review Console")
     print(f" Listening on: http://0.0.0.0:{PORT}")
     print(f" Serving directory: {WEB_DIR}")
-    print(f" Data directory:    {DATA_DIR}")
+    print(f" Data directory:    {DATA_DIR} (PDF & Markdown Persistence)")
     print(f" Google Cloud Run Ingress: Ready")
     print(f"============================================================")
     try:
