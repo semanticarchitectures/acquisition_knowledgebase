@@ -60,6 +60,11 @@ acquisition_knowledgebase/
 │   │   └── graph-queries.cypher        # Neo4j Cypher queries establishing the 6-level echelon graph
 │   └── workflows/
 │       └── 01-sprint-plan.md          # 4-Week PoC execution plan across Sprints 1 to 4
+├── data/
+│   ├── documents/                     # Persisted original uploaded requirement documents
+│   ├── summaries/                     # Generated Tier 1 Executive Summaries in Markdown
+│   ├── reviews/                       # Generated Precedence Audit Reviews in Markdown (with links)
+│   └── semantic_db.json               # Semantic database registry linking documents & summaries
 ├── docs/
 │   ├── architecture.md               # 5-Layer system specification and ingress design
 │   ├── public-anchor-docs.md         # Baseline spine authority documents (NDS, DoDD 5000.01, etc.)
@@ -70,10 +75,10 @@ acquisition_knowledgebase/
 │   ├── agents/                       # Multi-agent orchestrators, Auditor, and Editor agents
 │   ├── tools/                        # Integration tools (Vertex AI Vector Search, Neo4j driver)
 │   └── web/                          # Internet-accessible Web Interface application
-│       ├── index.html                # Responsive console UI shell
+│       ├── index.html                # Responsive console UI shell with Upload & History tabs
 │       ├── styles.css                # Premium dark-mode aerospace styling & design tokens
-│       ├── app.js                    # Dynamic dashboard, SVG hierarchy graph & audit runner
-│       └── server.py                 # Zero-dependency Python HTTP server & REST API
+│       ├── app.js                    # Dynamic dashboard, upload handler, diff & Markdown renderer
+│       └── server.py                 # Zero-dependency Python HTTP server, audit engine & REST API
 ├── terraform/
 │   └── main.tf                       # GCP provisioning (GCS, Document AI, Cloud Run internet service)
 ├── antigravity-initialize-poc.sh     # Bootstrapping script for workspace scaffolding
@@ -118,10 +123,12 @@ The system is organized into five decoupled layers:
 
 The Web Console provides an intuitive, web-accessible interface for operational personnel:
 
-- **Audit Overview Dashboard**: Key metrics, compliance gauge, missing policy notices, and conflict counters.
-- **Echelon Precedence Graph**: Interactive SVG visualization of the authority hierarchy and relationship edges.
+- **Audit Overview Dashboard**: Key metrics, dynamic compliance gauge, missing policy notices, and conflict counters.
+- **Upload & Review**: Drag-and-drop ingestion for `.md` and `.txt` requirement documents, with automated echelon conflict checks, instant compliance scoring, and generated Markdown review reports.
+- **Saved Reviews & Semantic DB Registry**: Server-side persistence under `data/` linking every document to its Tier 1 Markdown summary, original source file, and audit review.
+- **Echelon Precedence Graph**: Interactive visualization of the 6 authority hierarchy nodes and relationship edges.
 - **Side-by-Side Redline Diff**: Live comparative analysis between higher-echelon mandates (e.g., Doc A) and target requirements (e.g., Doc D) highlighting parameter discrepancies.
-- **Schema-Compliant Reporting**: Generates structured reports conforming to [.agents/skills/audit-schema.json](.agents/skills/audit-schema.json) with downloadable Issue Memorandums.
+- **Schema-Compliant Reporting & Memorandums**: Generates structured reports conforming to [.agents/skills/audit-schema.json](.agents/skills/audit-schema.json) with downloadable Issue Memorandums.
 - **Internet Access Topology**:
   - Hosted as a serverless container on **Google Cloud Run**.
   - Accessible via internet HTTPS with custom domain mapping (`https://acquisition-audit.mil` or Cloud Run URL).

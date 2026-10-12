@@ -6,10 +6,11 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Copy source code, documentation, and agent skills
+# Copy source code, documentation, agent skills, and persistent data
 COPY src/ /app/src/
 COPY docs/ /app/docs/
 COPY .agents/ /app/.agents/
+COPY data/ /app/data/
 
 # Cloud Run injects the $PORT environment variable (default: 8080)
 ENV PORT=8080

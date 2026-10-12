@@ -1,0 +1,118 @@
+{
+  "$schema": "semantic-db-schema-v1",
+  "name": "USAF Acquisition Knowledgebase Semantic Index",
+  "updated_at": "2026-10-12T10:59:35.600306+00:00",
+  "documents": [
+    {
+      "document_id": "DOC-001",
+      "title": "Doc A: Updated ACE C2 Operational Concept (2026)",
+      "filename": "DOC-001_Doc_A_ACE_Concept.md",
+      "echelon": {
+        "level": 3,
+        "name": "DAF"
+      },
+      "original_document_url": "/api/documents/DOC-001",
+      "summary_url": "/api/summaries/DOC-001",
+      "summary_markdown_file": "data/summaries/DOC-001_summary.md",
+      "reviews": [],
+      "status": "GOVERNING_ANCHOR",
+      "tier1_summary": "Air Force doctrine for communications resilience requiring <= 3-second mesh fallback during SATCOM loss.",
+      "tier2_sections": [
+        "Section 3: Communications Resilience"
+      ]
+    },
+    {
+      "document_id": "DOC-002",
+      "title": "Doc D: Tactical Data Link SRD (Draft)",
+      "filename": "DOC-002_Doc_D_Target_SRD.md",
+      "echelon": {
+        "level": 6,
+        "name": "Program_Office"
+      },
+      "original_document_url": "/api/documents/DOC-002",
+      "summary_url": "/api/summaries/DOC-002",
+      "summary_markdown_file": "data/summaries/DOC-002_summary.md",
+      "reviews": [
+        {
+          "review_id": "REV-2026-001",
+          "review_url": "/api/reviews/REV-2026-001",
+          "review_markdown_file": "data/reviews/REV-2026-001_Doc_D_Audit_Review.md",
+          "compliance_score": 0.68,
+          "status": "CRITICAL_CONFLICT_FOUND",
+          "audit_date": "2026-10-12"
+        }
+      ],
+      "status": "AUDITED_UNDER_REVIEW",
+      "tier1_summary": "System Requirements Document for Tactical Data Link specifying 60s failover timer.",
+      "tier2_sections": [
+        "Section 4.2: Link Failover Parameters"
+      ]
+    },
+    {
+      "document_id": "DOC-ANCHOR-01",
+      "title": "National Defense Strategy (NDS) - Unclassified Summary",
+      "filename": "NDS_Summary.md",
+      "echelon": {
+        "level": 1,
+        "name": "Federal"
+      },
+      "original_document_url": "/api/documents/DOC-ANCHOR-01",
+      "summary_url": "/api/summaries/DOC-ANCHOR-01",
+      "summary_markdown_file": "data/summaries/DOC-ANCHOR-01_summary.md",
+      "reviews": [],
+      "status": "GOVERNING_ANCHOR",
+      "tier1_summary": "Highest-echelon national defense strategic guidance and joint interoperability mandates.",
+      "tier2_sections": [
+        "Strategic Priorities",
+        "Joint Force Interoperability"
+      ]
+    },
+    {
+      "document_id": "DOC-ANCHOR-02",
+      "title": "DoD Directive 5000.01 (Defense Acquisition System)",
+      "filename": "DoDD_5000_01.md",
+      "echelon": {
+        "level": 2,
+        "name": "DoD"
+      },
+      "original_document_url": "/api/documents/DOC-ANCHOR-02",
+      "summary_url": "/api/summaries/DOC-ANCHOR-02",
+      "summary_markdown_file": "data/summaries/DOC-ANCHOR-02_summary.md",
+      "reviews": [],
+      "status": "GOVERNING_ANCHOR",
+      "tier1_summary": "Governs statutory acquisition milestones, testing, and lifecycle operational safety.",
+      "tier2_sections": [
+        "Acquisition Principles",
+        "Statutory Compliance"
+      ]
+    },
+    {
+      "document_id": "DOC-2775",
+      "title": "Test Tactical Comms Specification",
+      "filename": "DOC-2775_Test_Tactical_Comms_Spec.md",
+      "echelon": {
+        "level": 6,
+        "name": "Program_Office"
+      },
+      "uploaded_at": "2026-10-12T10:59:35.600292+00:00",
+      "original_document_url": "/api/documents/DOC-2775",
+      "summary_url": "/api/summaries/DOC-2775",
+      "summary_markdown_file": "data/summaries/DOC-2775_summary.md",
+      "reviews": [
+        {
+          "review_id": "REV-2026-2775",
+          "review_url": "/api/reviews/REV-2026-2775",
+          "review_markdown_file": "data/reviews/REV-2026-2775_Test_Tactical_Comms_Specificat_Audit_Review.md",
+          "compliance_score": 0.68,
+          "status": "CRITICAL_CONFLICT_FOUND",
+          "audit_date": "2026-10-12"
+        }
+      ],
+      "status": "AUDITED",
+      "tier1_summary": "Uploaded document audited at Level 6 (Program_Office). Compliance: 0.68.",
+      "tier2_sections": [
+        "Section 2: Link Resilience"
+      ]
+    }
+  ]
+}

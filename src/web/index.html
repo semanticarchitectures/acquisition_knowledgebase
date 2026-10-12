@@ -54,13 +54,21 @@
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
         Audit Dashboard
       </button>
+      <button class="tab-button" id="tab-upload" role="tab" aria-selected="false" aria-controls="panel-upload" data-target="upload">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        Upload &amp; Review
+      </button>
+      <button class="tab-button" id="tab-history" role="tab" aria-selected="false" aria-controls="panel-history" data-target="history">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
+        Saved Reviews &amp; Semantic DB
+      </button>
       <button class="tab-button" id="tab-hierarchy" role="tab" aria-selected="false" aria-controls="panel-hierarchy" data-target="hierarchy">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
         Echelon Hierarchy Graph
       </button>
       <button class="tab-button" id="tab-diff" role="tab" aria-selected="false" aria-controls="panel-diff" data-target="diff">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
-        Redline & Conflict Diff
+        Redline &amp; Conflict Diff
       </button>
       <button class="tab-button" id="tab-memorandum" role="tab" aria-selected="false" aria-controls="panel-memorandum" data-target="memorandum">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -68,7 +76,7 @@
       </button>
       <button class="tab-button" id="tab-catalog" role="tab" aria-selected="false" aria-controls="panel-catalog" data-target="catalog">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-        Policy & Anchor Catalog
+        Policy Catalog
       </button>
     </div>
   </nav>
@@ -96,8 +104,8 @@
               </div>
             </div>
             <div class="gauge-legend">
-              <p class="gauge-desc">Target Requirement: <strong>Doc D (Target SRD)</strong> evaluated against <strong>Doc A (ACE Concept)</strong>.</p>
-              <span class="metric-trend negative">▼ 32% penalty from critical parameter mismatch</span>
+              <p class="gauge-desc">Target Requirement: <strong id="overview-target-doc-name">Doc D (Target SRD)</strong> evaluated against <strong>Doc A (ACE Concept)</strong>.</p>
+              <span class="metric-trend negative" id="overview-trend-val">▼ 32% penalty from critical parameter mismatch</span>
             </div>
           </div>
         </div>
@@ -109,8 +117,8 @@
             <span class="badge badge-neutral">SPINE</span>
           </div>
           <div class="metric-body">
-            <div class="metric-number">7</div>
-            <div class="metric-subtext">5 Public Anchors + 2 Test Documents</div>
+            <div class="metric-number" id="stat-policies-scanned">7</div>
+            <div class="metric-subtext">5 Public Anchors + Ingested Documents</div>
             <div class="metric-footer-tags">
               <span class="tag">Federal</span>
               <span class="tag">DoD</span>
@@ -163,8 +171,8 @@
           </svg>
         </div>
         <div class="banner-content">
-          <h2 class="banner-title">Critical Precedence Conflict Detected: Failover Latency Parameter</h2>
-          <p class="banner-description">
+          <h2 class="banner-title" id="banner-title-text">Critical Precedence Conflict Detected: Failover Latency Parameter</h2>
+          <p class="banner-description" id="banner-desc-text">
             Lower-echelon draft requirement in <strong>Doc D: Tactical Data Link SRD (Program Office, Level 6)</strong> specifies a <strong>60-second</strong> failover timer. This violates higher-echelon authority <strong>Doc A: Updated ACE C2 Operational Concept (DAF, Level 3)</strong> which strictly mandates automated fallback within <strong>3 seconds</strong>.
           </p>
         </div>
@@ -179,7 +187,7 @@
         <div class="card-header">
           <div class="card-title-group">
             <h3 class="card-title">Precedence Audit Findings</h3>
-            <p class="card-subtitle">Automated comparison against Graph Echelon & Temporal Precedence Rules</p>
+            <p class="card-subtitle">Automated comparison against Graph Echelon &amp; Temporal Precedence Rules</p>
           </div>
           <div class="card-actions">
             <button class="btn btn-ghost" id="btn-export-json" type="button">
@@ -219,7 +227,7 @@
                   Operational failover timer exceeds authorized ACE latency threshold by 57 seconds.
                 </td>
                 <td>
-                  <button class="btn btn-xs btn-primary btn-resolve-row" data-conflict="CONF-2026-001" type="button">Review & Redline</button>
+                  <button class="btn btn-xs btn-primary btn-resolve-row" data-conflict="CONF-2026-001" type="button">Review &amp; Redline</button>
                 </td>
               </tr>
             </tbody>
@@ -231,7 +239,7 @@
       <div class="content-card">
         <div class="card-header">
           <div class="card-title-group">
-            <h3 class="card-title">Missing Policies & JIT Ingestion Queue</h3>
+            <h3 class="card-title">Missing Policies &amp; JIT Ingestion Queue</h3>
             <p class="card-subtitle">Referenced standards not currently indexed in Vertex AI Vector Search</p>
           </div>
           <button class="btn btn-sm btn-secondary" id="btn-trigger-jit" type="button">Ingest Missing Policies</button>
@@ -251,12 +259,178 @@
       </div>
     </section>
 
-    <!-- PANEL 2: ECHELON HIERARCHY GRAPH -->
+    <!-- PANEL 2: UPLOAD & REVIEW (NEW!) -->
+    <section class="tab-panel" id="panel-upload" role="tabpanel" aria-labelledby="tab-upload">
+      <div class="content-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">Document Ingestion &amp; Automated Precedence Review</h3>
+            <p class="card-subtitle">Upload requirement specifications (.md, .txt) to persist to server, generate Markdown summaries, and execute real-time echelon audits</p>
+          </div>
+          <button class="btn btn-sm btn-secondary" id="btn-load-sample-doc" type="button">Load Sample (Doc D)</button>
+        </div>
+
+        <div class="upload-container">
+          <!-- Dropzone -->
+          <div class="dropzone" id="dropzone">
+            <input type="file" id="file-input" accept=".md,.txt,.json" style="display: none;">
+            <div class="dropzone-icon">
+              <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+              </svg>
+            </div>
+            <div class="dropzone-text">
+              <h4>Drag &amp; Drop Requirement Document Here</h4>
+              <p>or click to browse your computer (.md, .txt, .json)</p>
+            </div>
+            <div class="dropzone-file-selected" id="dropzone-file-info" style="display: none;">
+              <span class="badge badge-success">FILE LOADED</span>
+              <span id="selected-file-name" class="font-mono text-cyan">Doc_D_Target_SRD.md</span>
+            </div>
+          </div>
+
+          <!-- Metadata Configuration Form -->
+          <div class="upload-form-grid">
+            <div class="form-group">
+              <label for="input-doc-title" class="form-label">Document Title</label>
+              <input type="text" id="input-doc-title" class="form-input" placeholder="e.g., Tactical Data Link SRD (Draft)" value="Tactical Data Link System Requirements Document">
+            </div>
+
+            <div class="form-group">
+              <label for="select-doc-echelon" class="form-label">Authority Echelon Level</label>
+              <select id="select-doc-echelon" class="form-select">
+                <option value="6" data-name="Program_Office" selected>Level 6: Program Office (SRD, Program Specs)</option>
+                <option value="5" data-name="PAE_C3BM">Level 5: PAE_C3BM (PEO Architecture Directives)</option>
+                <option value="4" data-name="AFMC">Level 4: AFMC (Command Acquisition Policy)</option>
+                <option value="3" data-name="DAF">Level 3: DAF (Department Instructions &amp; Doctrine)</option>
+                <option value="2" data-name="DoD">Level 2: DoD (Directives &amp; DAS Regulations)</option>
+                <option value="1" data-name="Federal">Level 1: Federal (National Strategy, Law)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Document Text Editor/Preview -->
+          <div class="form-group">
+            <label for="textarea-doc-content" class="form-label">Document Content (Markdown / Text Preview)</label>
+            <textarea id="textarea-doc-content" class="form-textarea" rows="8" placeholder="# Paste requirement text or drop a file above..."># Doc D: Tactical Data Link System Requirements Document (Draft)
+
+## Section 4.2: Link Failover Parameters
+In the event of SATCOM signal attenuation or jamming, the system shall maintain a re-acquisition timer of 60 seconds before switching operational modes to local tactical data links.</textarea>
+          </div>
+
+          <div class="upload-actions">
+            <button class="btn btn-primary" id="btn-submit-upload" type="button">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <span>Ingest Document &amp; Run Automated Review</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Uploaded Review Result Card (Appears after submission) -->
+        <div class="upload-result-container" id="upload-result-container" style="display: none;">
+          <div class="result-header">
+            <div class="result-title-group">
+              <span class="badge badge-success" id="result-status-badge">REVIEW COMPLETED &amp; PERSISTED</span>
+              <h4 id="result-review-heading">Review Generated: REV-2026-002</h4>
+              <p class="text-muted">Saved to server storage under <code>data/reviews/</code> and indexed in <code>data/semantic_db.json</code></p>
+            </div>
+            <div class="result-links-bar" id="result-links-bar">
+              <!-- Dynamically populated links -->
+            </div>
+          </div>
+
+          <!-- Rendered Markdown Review Container -->
+          <div class="markdown-rendered-view" id="markdown-rendered-view">
+            <!-- Markdown content will be dynamically rendered here -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 3: SAVED REVIEWS & SEMANTIC DATABASE (NEW!) -->
+    <section class="tab-panel" id="panel-history" role="tabpanel" aria-labelledby="tab-history">
+      <div class="content-card">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title">Semantic Database &amp; Review Registry</h3>
+            <p class="card-subtitle">Server-persisted documents, executive summaries in Markdown, and audit review reports with bidirectional links</p>
+          </div>
+          <button class="btn btn-sm btn-ghost" id="btn-refresh-history" type="button">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            Refresh Registry
+          </button>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table" id="table-semantic-db">
+            <thead>
+              <tr>
+                <th>Doc ID</th>
+                <th>Title &amp; Stored File</th>
+                <th>Echelon</th>
+                <th>Original File Link</th>
+                <th>Markdown Summary Link</th>
+                <th>Audit Review Link</th>
+                <th>Compliance</th>
+              </tr>
+            </thead>
+            <tbody id="semantic-db-tbody">
+              <!-- Populated dynamically from /api/semantic-db -->
+              <tr>
+                <td><code>DOC-001</code></td>
+                <td>
+                  <strong>Doc A: Updated ACE C2 Operational Concept (2026)</strong><br>
+                  <small class="text-muted">DOC-001_Doc_A_ACE_Concept.md</small>
+                </td>
+                <td><span class="badge badge-success">Level 3 (DAF)</span></td>
+                <td><a href="/api/documents/DOC-001" target="_blank" class="table-link">Original Doc ↗</a></td>
+                <td><a href="/api/summaries/DOC-001" target="_blank" class="table-link text-cyan">Summary.md ↗</a></td>
+                <td><span class="text-muted">— Governing Anchor —</span></td>
+                <td><span class="badge badge-success">ANCHOR</span></td>
+              </tr>
+              <tr>
+                <td><code>DOC-002</code></td>
+                <td>
+                  <strong>Doc D: Tactical Data Link SRD (Draft)</strong><br>
+                  <small class="text-muted">DOC-002_Doc_D_Target_SRD.md</small>
+                </td>
+                <td><span class="badge badge-neutral">Level 6 (Program_Office)</span></td>
+                <td><a href="/api/documents/DOC-002" target="_blank" class="table-link">Original Doc ↗</a></td>
+                <td><a href="/api/summaries/DOC-002" target="_blank" class="table-link text-cyan">Summary.md ↗</a></td>
+                <td><button class="btn btn-xs btn-primary btn-open-review-modal" data-review="REV-2026-001" type="button">Review.md ↗</button></td>
+                <td><span class="badge badge-danger">0.68 ACTION REQ</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Persistent Markdown Review Reader Modal / Container -->
+      <div class="content-card" id="history-review-viewer-card" style="display: none;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <h3 class="card-title" id="history-viewer-title">Review Document: REV-2026-001</h3>
+            <p class="card-subtitle">Persisted Markdown Review Report</p>
+          </div>
+          <button class="btn btn-sm btn-ghost" id="btn-close-history-viewer" type="button">Close Viewer</button>
+        </div>
+        <div class="markdown-rendered-view" id="history-markdown-viewer">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PANEL 4: ECHELON HIERARCHY GRAPH -->
     <section class="tab-panel" id="panel-hierarchy" role="tabpanel" aria-labelledby="tab-hierarchy">
       <div class="content-card">
         <div class="card-header">
           <div class="card-title-group">
-            <h3 class="card-title">Echelon Authority & Precedence Graph</h3>
+            <h3 class="card-title">Echelon Authority &amp; Precedence Graph</h3>
             <p class="card-subtitle">Neo4j Cypher representation: Directional <code>[:AUTHORITY_OVER]</code> relationships</p>
           </div>
           <div class="card-badge-info">
@@ -349,7 +523,7 @@
       </div>
     </section>
 
-    <!-- PANEL 3: REDLINE & CONFLICT DIFF -->
+    <!-- PANEL 5: REDLINE & CONFLICT DIFF -->
     <section class="tab-panel" id="panel-diff" role="tabpanel" aria-labelledby="tab-diff">
       <div class="content-card">
         <div class="card-header">
@@ -391,7 +565,7 @@
             <div class="pane-header">
               <div class="pane-title">
                 <span class="badge badge-danger" id="target-doc-badge">NON-COMPLIANT DRAFT</span>
-                <h4>Doc D: Tactical Data Link SRD (Draft)</h4>
+                <h4 id="target-pane-title">Doc D: Tactical Data Link SRD (Draft)</h4>
               </div>
               <div class="pane-meta">Echelon: <strong>Program Office (Level 6)</strong> • Section 4.2</div>
             </div>
@@ -424,13 +598,13 @@
       </div>
     </section>
 
-    <!-- PANEL 4: ISSUE MEMORANDUM (DOC E) -->
+    <!-- PANEL 6: ISSUE MEMORANDUM (DOC E) -->
     <section class="tab-panel" id="panel-memorandum" role="tabpanel" aria-labelledby="tab-memorandum">
       <div class="content-card memo-card">
         <div class="card-header">
           <div class="card-title-group">
             <h3 class="card-title">Issue Memorandum (Doc E)</h3>
-            <p class="card-subtitle">Official Precedence Review & Redline Recommendation</p>
+            <p class="card-subtitle">Official Precedence Review &amp; Redline Recommendation</p>
           </div>
           <div class="memo-actions">
             <button class="btn btn-secondary btn-sm" id="btn-copy-memo" type="button">Copy to Clipboard</button>
@@ -442,8 +616,8 @@
           <div class="memo-header-block">
             <div class="memo-header-line"><strong>MEMORANDUM FOR:</strong> Program Executive Officer, PEO C3BM</div>
             <div class="memo-header-line"><strong>FROM:</strong> Acquisition Multi-Agent Audit System (AuditorAgent / Vertex AI ADK)</div>
-            <div class="memo-header-line"><strong>SUBJECT:</strong> Precedence Conflict Audit & Redline Recommendation — Doc D (Target SRD)</div>
-            <div class="memo-header-line"><strong>DATE:</strong> October 11, 2026</div>
+            <div class="memo-header-line"><strong>SUBJECT:</strong> Precedence Conflict Audit &amp; Redline Recommendation — Doc D (Target SRD)</div>
+            <div class="memo-header-line"><strong>DATE:</strong> October 12, 2026</div>
           </div>
 
           <hr class="memo-divider">
@@ -475,7 +649,7 @@
           </div>
 
           <div class="memo-section">
-            <h4 class="memo-heading">4. RECOMMENDATION & REDLINE</h4>
+            <h4 class="memo-heading">4. RECOMMENDATION &amp; REDLINE</h4>
             <p>
               Approve the EditorAgent redline modifying Section 4.2 of Doc D to mandate local mesh failover within &le; 3 seconds of SATCOM link degradation.
             </p>
@@ -484,12 +658,12 @@
       </div>
     </section>
 
-    <!-- PANEL 5: POLICY CATALOG -->
+    <!-- PANEL 7: POLICY CATALOG -->
     <section class="tab-panel" id="panel-catalog" role="tabpanel" aria-labelledby="tab-catalog">
       <div class="content-card">
         <div class="card-header">
           <div class="card-title-group">
-            <h3 class="card-title">Policy & Anchor Document Catalog</h3>
+            <h3 class="card-title">Policy &amp; Anchor Document Catalog</h3>
             <p class="card-subtitle">Knowledge store inventory indexed in Vertex AI Vector Search and Neo4j</p>
           </div>
         </div>
@@ -571,7 +745,7 @@
               <span class="status-dot-sm online"></span>
             </div>
             <h4 class="catalog-title">Doc A: Updated ACE C2 Operational Concept</h4>
-            <p class="catalog-desc">2026 update governing communications resilience & austere mesh networking (3-second failover).</p>
+            <p class="catalog-desc">2026 update governing communications resilience &amp; austere mesh networking (3-second failover).</p>
             <div class="catalog-footer">
               <span class="catalog-tag">Active Audit Benchmark</span>
             </div>
@@ -602,7 +776,7 @@
     </div>
     <div class="footer-right">
       <span>Precedence Engine: Level 1–6 Graph Active</span> •
-      <span id="footer-last-audit">Last Audit: Live Demo State</span>
+      <span id="footer-last-audit">Live Storage: data/documents/ &amp; data/reviews/</span>
     </div>
   </footer>
 
